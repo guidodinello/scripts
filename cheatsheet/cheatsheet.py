@@ -11,7 +11,7 @@ from ..configreader import read_mapping_file
 CHEATSHEETS_FOLDER = read_mapping_file()['folder']
 SIMILARITY_THRESHOLD = 4
 
-USAGE_DOCS = """
+USAGE_DOCS = f"""
 Usage: cheatsheet <cheatsheet_name>
 
 This command opens the <cheatsheet_name>.md 
@@ -19,7 +19,7 @@ located under FOLDER using in VSCode.
 If no file matches <cheatsheet_name>.md, it will show an error 
 and print a list of similar files.
 
-FOLDER=/home/guido/Cheatsheets
+FOLDER={CHEATSHEETS_FOLDER}
 """
 
 word_distance = namedtuple('word_distance', ['word', 'distance'])
