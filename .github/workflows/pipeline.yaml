@@ -1,4 +1,4 @@
-name: Pipeline
+name: Pylint
 
 on:
     push:

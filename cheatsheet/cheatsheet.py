@@ -5,11 +5,14 @@ from collections import namedtuple
 from pathlib import Path
 from typing import Callable, Iterable, Optional, TypeVar
 
-from ..configreader import read_mapping_file
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+import configreader
+
+PATH_DIR = os.path.join(os.path.dirname(__file__), "path.txt")
 
 # Configurable Script Constants
-CHEATSHEETS_FOLDER = read_mapping_file()['folder']
-SIMILARITY_THRESHOLD = 4
+CHEATSHEETS_FOLDER=configreader.read_mapping_file(PATH_DIR)['folder']
+SIMILARITY_THRESHOLD=4
 
 USAGE_DOCS = f"""
 Usage: cheatsheet <cheatsheet_name>
@@ -86,23 +89,24 @@ T = TypeVar('T')
 def lazy_find(p: Callable[[T], bool], iterable: Iterable[T]) -> Optional[T]:
     return next((x for x in iterable if p(x)), None)
 
-
 if __name__ == "__main__":
     if len(sys.argv) != 2:
         print(USAGE_DOCS)
         sys.exit(1)
 
     cheatsheet_name = sys.argv[1].lower()
+    
+    cheatsheets = lambda: Path(CHEATSHEETS_FOLDER).glob(f'*.md')
 
     cheatsheet_file = lazy_find(
         lambda x: x.stem.lower() == cheatsheet_name,
-        Path(CHEATSHEETS_FOLDER).glob('*.md'))
+        cheatsheets())
 
     if cheatsheet_file is None:
         print("Cheatsheet not found. Maybe you meant:")
         similar = find_most_similar_words(
             cheatsheet_name,
-            [x.stem.lower() for x in Path(CHEATSHEETS_FOLDER).glob('*.md')])
+            [x.stem.lower() for x in cheatsheets()])
         recommendations = list(
             filter(
                 lambda x: x.distance < SIMILARITY_THRESHOLD,

@@ -4,7 +4,8 @@ import subprocess
 import sys
 from argparse import ArgumentParser
 
-from ..configreader import read_mapping_file
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+import configreader
 
 PATHS_DIR=os.path.join(os.path.dirname(__file__), "paths.txt")
 
@@ -16,13 +17,14 @@ if __name__ == "__main__":
     args = parser.parse_args()
     project = args.project_name.lower()
     
-    PATHS = read_mapping_file(PATHS_DIR)
+    PATHS = configreader.read_mapping_file(PATHS_DIR)
 
     if project not in PATHS:
         msg = f"Theres no project registered for the name: {project} \n"
         msg += "Supported projects are: \n"
         for k in PATHS:
             msg += f"\t* {k}\n"
+        print(msg)
         sys.exit(1)
 
     path_project = PATHS[project]

@@ -1,1 +1,2 @@
 pylint_report.txt
+__pycache__/
