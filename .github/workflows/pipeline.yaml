@@ -19,14 +19,14 @@ jobs:
         - name: install dependencies
           run: |
             python -m pip install --upgrade pip
-            pip install -r requirements.txt
+            pip3 install -r requirements.txt
         - name: run autopep8
           run: |
-            pip install autopep8
+            pip3 install autopep8
             autopep8 --in-place --recursive .
         - name: run pylint
           run: |
-            pip install pylint
+            pip3 install pylint==2.17.4
             pylint --exit-zero ./*.py > pylint_report.txt
             score=$(grep -oE 'Your code has been rated at ([0-9.]+)/10' 'pylint_report.txt' | grep -oE '[0-9]+\.[0-9]+')
             echo "Pylint score: $score"
