@@ -1,0 +1,32 @@
+name: Pipeline
+
+on:
+    push:
+        branches:
+        - master
+    pull_request:
+        branches:
+        - master
+
+jobs:
+    build:
+        runs-on: ubuntu-latest
+        steps:
+        - uses: actions/checkout@v2
+        - uses: actions/setup-python@v2
+          with:
+            python-version: '3.8'
+        - name: run autopep8
+          run: |
+            pip install autopep8
+            autopep8 --in-place --recursive .
+        - name: run pylint
+          run: |
+            pip install pylint
+            pylint --exit-zero *.py > pylint_report.txt
+            score=$(grep -oE 'Your code has been rated at ([0-9.]+)/10' 'pylint_report.txt' | grep -oE '[0-9]+\.[0-9]+')
+            if (( $score > 8 )); then
+              exit 0
+            else
+              exit 1
+            fi
