@@ -23,7 +23,7 @@ jobs:
         - name: run pylint
           run: |
             pip install pylint
-            pylint --exit-zero *.py > pylint_report.txt
+            pylint --exit-zero ./*.py > pylint_report.txt
             score=$(grep -oE 'Your code has been rated at ([0-9.]+)/10' 'pylint_report.txt' | grep -oE '[0-9]+\.[0-9]+')
             echo "Pylint score: $score"
             if [ "$(echo "$score > 8" | bc)" -eq 1 ]; then
