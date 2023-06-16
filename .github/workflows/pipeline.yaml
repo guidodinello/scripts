@@ -15,15 +15,11 @@ jobs:
         - uses: actions/checkout@v2
         - uses: actions/setup-python@v2
           with:
-            python-version: '3.8'
+            python-version: '3.9.17'
         - name: install dependencies
           run: |
             python -m pip install --upgrade pip
             pip3 install -r requirements.txt
-        - name: run autopep8
-          run: |
-            pip3 install autopep8
-            autopep8 --in-place --recursive .
         - name: run pylint
           run: |
             pip3 install pylint==2.17.4
