@@ -23,10 +23,10 @@ jobs:
         - name: install quality tools
           run: |
             pip3 install black==23.3.0 mypy==1.4.1 pylint==2.17.4
-            chmod +x ./tests.sh
+            chmod +x ./test.sh
         - name: run quality tools
           run: |
-            ./tests.sh > qa_report.txt
+            ./test.sh > qa_report.txt
             mypy=$(grep -q 'Success: no issues found' 'qa_report.txt'; echo $?)
             if [ "$mypy" -eq 0 ]; then
               echo "Mypy: Success"
