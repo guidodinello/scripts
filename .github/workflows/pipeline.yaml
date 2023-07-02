@@ -15,18 +15,28 @@ jobs:
         - uses: actions/checkout@v2
         - uses: actions/setup-python@v2
           with:
-            python-version: '3.9.17'
+            python-version: '3.11.4'
         - name: install dependencies
           run: |
             python -m pip install --upgrade pip
             pip3 install -r requirements.txt
-        - name: run pylint
+        - name: install quality tools
           run: |
-            pip3 install pylint==2.17.4
-            pylint --exit-zero ./*.py > pylint_report.txt
-            score=$(grep -oE 'Your code has been rated at ([0-9.]+)/10' 'pylint_report.txt' | grep -oE '[0-9]+\.[0-9]+')
-            echo "Pylint score: $score"
-            if [ "$(echo "$score > 8" | bc)" -eq 1 ]; then
+            pip3 install black==23.3.0 mypy==1.4.1 pylint==2.17.4
+            chmod +x ./tests.sh
+        - name: run quality tools
+          run: |
+            ./tests.sh > qa_report.txt
+            mypy=$(grep -q 'Success: no issues found' 'qa_report.txt'; echo $?)
+            if [ "$mypy" -eq 0 ]; then
+              echo "Mypy: Success"
+            else
+              echo "Mypy: Failure"
+              exit 1
+            fi
+            pylint_score=$(grep -oE 'Your code has been rated at ([0-9.]+)/10' 'qa_report.txt' | grep -oE '[0-9]+\.[0-9]+')
+            echo "Pylint score: $pylint_score"
+            if [ "$(echo "$pylint_score > 8" | bc)" -eq 1 ]; then
               exit 0
             else
               exit 1

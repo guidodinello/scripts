@@ -1,2 +1,6 @@
-pylint_report.txt
+qa_report.txt
 __pycache__/
+.mypy_cache/
+venv/
+TODO
+.vscode/

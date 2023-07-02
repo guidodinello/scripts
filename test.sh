@@ -1,0 +1,7 @@
+FILE_PATTERN="*/*.py"
+PY_VERSION="311"
+LINE_LENGTH="79"
+
+black -t py${PY_VERSION} -l ${LINE_LENGTH} ${FILE_PATTERN}
+mypy ${FILE_PATTERN}
+pylint --exit-zero ${FILE_PATTERN}
