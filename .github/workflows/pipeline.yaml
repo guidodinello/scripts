@@ -1,4 +1,4 @@
-name: Pylint
+name: Code Quality
 
 on:
     push:
@@ -20,21 +20,23 @@ jobs:
           run: |
             python -m pip install --upgrade pip
             pip3 install -r requirements.txt
-        - name: install quality tools
+        - name: install quality assurance tools
           run: |
             pip3 install black==23.3.0 mypy==1.4.1 pylint==2.17.4
-            chmod +x ./test.sh
-        - name: run quality tools
+            chmod +x ./tests/test.sh
+        - name: run QA tools
           run: |
-            ./test.sh > qa_report.txt
-            mypy=$(grep -q 'Success: no issues found' 'qa_report.txt'; echo $?)
+            REPORT_FILE='qa_report.txt'
+            REPORT_FILE_PATH="tests/${REPORT_FILE}"
+            ./tests/test.sh > $REPORT_FILE_PATH
+            mypy=$(grep -q 'Success: no issues found' $REPORT_FILE_PATH; echo $?)
             if [ "$mypy" -eq 0 ]; then
               echo "Mypy: Success"
             else
               echo "Mypy: Failure"
               exit 1
             fi
-            pylint_score=$(grep -oE 'Your code has been rated at ([0-9.]+)/10' 'qa_report.txt' | grep -oE '[0-9]+\.[0-9]+')
+            pylint_score=$(grep -oE 'Your code has been rated at ([0-9.]+)/10' $REPORT_FILE_PATH | grep -oE '[0-9]+\.[0-9]+')
             echo "Pylint score: $pylint_score"
             if [ "$(echo "$pylint_score > 8" | bc)" -eq 1 ]; then
               exit 0
