@@ -9,6 +9,8 @@ TODO
 __pycache__/
 .mypy_cache/
 venv/
+build/
+utils.egg-info/
 
 # rust related
 target/

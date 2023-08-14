@@ -1,0 +1,6 @@
+-r requirements.txt
+types-setuptools>=68.0.0.3
+black>=23.3.0
+mypy>=1.4.1
+pylint>=2.17.4
+maturin>=1.1.0

@@ -4,12 +4,18 @@ import subprocess
 import sys
 from argparse import ArgumentParser
 
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from utils import configreader  # pylint: disable=C0413
+# using the rust module
+import fuzzy_string_matcher as sfm
 
+from utils import configreader
+
+
+SIMILARITY_THRESHOLD = 4
 PATHS_DIR = os.path.join(os.path.dirname(__file__), "paths.txt")
 
 if __name__ == "__main__":
+    PATHS = configreader.read_mapping_file(PATHS_DIR)
+
     parser = ArgumentParser()
     mutex_group = parser.add_mutually_exclusive_group(required=True)
 
@@ -18,25 +24,42 @@ if __name__ == "__main__":
     mutex_group.add_argument(
         "--add_entry", "--ae", nargs=2, metavar=("key", "abs_path")
     )
-
+    mutex_group.add_argument("--show", "--s", action="store_true")
     args = parser.parse_args()
-
-    PATHS = configreader.read_mapping_file(PATHS_DIR)
 
     project = args.project_name
     if project is None:
-        key, abs_path = args.add_entry
-        PATHS[key] = abs_path
-        configreader.add_to_mapping_file({key: abs_path}, PATHS_DIR)
+        if args.show:
+            for key, path in PATHS.items():
+                print(f"{key}: {path}")
+            sys.exit(0)
+        else:
+            key, abs_path = args.add_entry
+            PATHS[key] = abs_path
+            configreader.add_to_mapping_file({key: abs_path}, PATHS_DIR)
+            sys.exit(0)
     else:
         project = project.lower()
 
         if project not in PATHS:
-            msg = f"Theres no project registered for the name: {project} \n"
-            msg += "Supported projects are: \n"
-            for k in PATHS:
-                msg += f"\t* {k}\n"
+            msg = f"Theres no project registered for the name: {project} \nMaybe you meant:"
             print(msg)
+
+            # show fuzzy matched projects
+            similar = sfm.find_most_similar_words(  # type: ignore[attr-defined]
+                project, list(PATHS.keys()), 3
+            )
+            recommendations = list(
+                filter(lambda x: x.distance < SIMILARITY_THRESHOLD, similar)
+            )
+            # if theres no name good enough (above the threshold)
+            if len(recommendations) == 0:
+                # just show the most similar
+                print(f"\t* {similar[0].word}")
+            else:
+                for word, _ in recommendations:
+                    print(f"\t* {word}")
+
             sys.exit(1)
 
         path_project = PATHS[project]
