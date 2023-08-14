@@ -1,1 +1,1 @@
-folder=~/
+# empty lines and lines starting with # are ignored
