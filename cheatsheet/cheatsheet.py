@@ -1,12 +1,41 @@
+"""
+Cheatsheet Manager
+
+This script provides a command-line interface to manage and access cheatsheets 
+in Markdown format. Users can open specific cheatsheets using their names, 
+list all available cheatsheets, or receive suggestions for similar cheatsheet 
+names using fuzzy string matching.
+
+Usage:
+    python cheatsheet.py <cheatsheet_name>
+    python cheatsheet.py -h | --help
+    python cheatsheet.py -l | --list | --show_all
+
+Options:
+    <cheatsheet_name>      The name of the cheatsheet to be opened.
+    -h, --help             Show usage documentation.
+    -l, --list, --show_all List all available cheatsheet names.
+
+Global Constants:
+    - CHEATSHEETS_FOLDER: 
+        The folder path where cheatsheets in Markdown format are stored.
+    - SIMILARITY_THRESHOLD: A threshold for fuzzy string matching similarity.
+    
+Author:
+    guidodinello
+
+"""
+
 import os
 import subprocess
 import sys
 from pathlib import Path
 from typing import Callable, Iterable, Optional, TypeVar
 
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from utils import configreader  # pylint: disable=C0413
-from utils import string_fuzzy_matcher as sfm  # pylint: disable=C0413
+import fuzzy_string_matcher as sfm
+
+
+from utils import configreader
 
 PATH_DIR = os.path.join(os.path.dirname(__file__), "path.txt")
 
@@ -71,13 +100,11 @@ if __name__ == "__main__":
                 sys.exit(0)
             else:
                 print("Cheatsheet not found. Maybe you meant:")
-                similar = sfm.find_most_similar_words(
-                    cheatsheet_name, [x.stem.lower() for x in cheatsheets()]
+                similar = sfm.find_most_similar_words(  # type: ignore[attr-defined]
+                    cheatsheet_name, [x.stem.lower() for x in cheatsheets()], 3
                 )
                 recommendations = list(
-                    filter(
-                        lambda x: x.distance < SIMILARITY_THRESHOLD, similar
-                    )
+                    filter(lambda x: x.distance < SIMILARITY_THRESHOLD, similar)
                 )
                 if len(recommendations) == 0:
                     print(f"\t* {similar[0].word}")

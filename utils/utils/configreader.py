@@ -22,9 +22,11 @@ def read_mapping_file(abs_path: str) -> dict[str, Path]:
 
 
 def add_to_mapping_file(new_entries: Dict[str, str], abs_path: str) -> None:
-    """Adds new entries to the mapping file. This means appending to the mapping file.
+    """Adds new entries to the mapping file.
+    This means appending to the mapping file.
     Args:
-        new_entries (Dict[str, str]): new key value pairs to add to the mapping file
+        new_entries (Dict[str, str]): new key value pairs to add to the mapping
+            file
         abs_path (str): absolute path to the mapping file
     """
     with open(abs_path, "a", encoding="utf-8") as file:

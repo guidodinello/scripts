@@ -1,6 +1,16 @@
+# project related
 qa_report.txt
+TODO
+
+# editor related
+.vscode/
+
+# python related
 __pycache__/
 .mypy_cache/
 venv/
-TODO
-.vscode/
+build/
+utils.egg-info/
+
+# rust related
+target/

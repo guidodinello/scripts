@@ -15,7 +15,8 @@ def find_most_similar_words(
     Args:
         obj_word (str): word to compare to
         word_list (Iterable[str]): list of words to compare with
-        num_results (int, optional): number of results to retrieve. Defaults to 10.
+        num_results (int, optional): number of results to retrieve.
+            Defaults to 10.
     Returns:
         list[WordDistance]: list of WordDistance objects
     """
