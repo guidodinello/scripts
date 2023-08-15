@@ -1,12 +1,46 @@
 use pyo3::prelude::*;
-
-#[pyclass]
+// allow to unpack the struct in python
+#[pyclass] #[derive(Clone)]
 pub struct WordDistance {
     #[pyo3(get)]
     pub word: String,
     #[pyo3(get)]
     pub distance: usize,
 }
+#[pyclass]
+struct Iter {
+    word_distance: WordDistance,
+    index: usize,
+}
+#[pymethods]
+impl Iter {
+    fn __iter__(slf: PyRef<'_, Self>) -> PyRef<'_, Self> {
+        slf
+    }
+    fn __next__(mut slf: PyRefMut<'_, Self>) -> Option<PyObject> {
+        if slf.index == 0 {
+            slf.index += 1;
+            Some(slf.word_distance.word.to_object(slf.py()))
+        } else if slf.index == 1 {
+            slf.index += 1;
+            Some(slf.word_distance.distance.to_object(slf.py()))
+        } else {
+            None
+        }
+    }
+}
+
+#[pymethods]
+impl WordDistance {
+    fn __iter__(slf: PyRef<'_, Self>) -> PyResult<Py<Iter>> {
+        let iter = Iter {
+            word_distance: slf.clone(),
+            index: 0,
+        };
+        Py::new(slf.py(), iter)
+    }
+}
+
 
 fn damerau_levenshtein(word1: &str, word2: &str) -> usize {
     let word1_len = word1.chars().count();
