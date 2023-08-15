@@ -1,6 +1,7 @@
 #!/bin/bash
 
 USE_RUST=1
+PY_VERSION="3.11"
 SCRIPTS_DIR="${HOME}/scripts/Python/automater"
 VENV_NAME="venv"
 ACTIVATE_VENV="source ${SCRIPTS_DIR}/${VENV_NAME}/bin/activate"
@@ -8,16 +9,17 @@ ACTIVATE_VENV="source ${SCRIPTS_DIR}/${VENV_NAME}/bin/activate"
 supported_scripts=("open" "cheatsheet")
 
 function setup_python_venv() {
-    python3 -m venv "${SCRIPTS_DIR}/${VENV_NAME}"
+    python{PY_VERSION} -m venv "${SCRIPTS_DIR}/${VENV_NAME}"
     ${ACTIVATE_VENV}
-    python3 -m pip install --upgrade pip
+    python${PY_VERSION} -m pip install --upgrade pip
     pip3 install -r "${SCRIPTS_DIR}/requirements.txt"
     pip3 install utils/
 }
 
 function add_alias() {
     local script="$1"
-    echo "alias ${script}='${ACTIVATE_VENV} | python3 ${SCRIPTS_DIR}/${script}/${script}.py'" >> ~/.bash_aliases
+    echo "Adding alias for ${script}"
+    echo "alias ${script}='${ACTIVATE_VENV} && python${PY_VERSION} ${SCRIPTS_DIR}/${script}/${script}.py'" >> ~/.bash_aliases
 }
 
 function install_scripts() {
@@ -26,18 +28,21 @@ function install_scripts() {
         if [[ ! " ${supported_scripts[@]} " =~ " ${script} " ]]; then
             echo "Script ${script} not supported"
             continue
-        else
-            add_alias "${script}"
         fi
+        # if alias already exists in .bash_asliases, skip it.
+        if grep -q "alias ${script}" ~/.bash_aliases; then
+            echo "Alias for ${script} already exists"
+            continue
+        fi 
+        add_alias "${script}"
     done
 }
-
 
 if [ ! -d "${SCRIPTS_DIR}/${VENV_NAME}" ]; then
     setup_python_venv
     if [ "${USE_RUST}" -eq 1 ]; then
-            cd "${SCRIPTS_DIR}/rust_utils/fuzzy_string_matcher"
-            maturin develop --release --strip
+        cd "${SCRIPTS_DIR}/rust_utils/fuzzy_string_matcher"
+        maturin develop --release --strip
     fi
 fi
 # if not arguments provided install all supported scripts
