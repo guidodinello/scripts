@@ -7,4 +7,4 @@ mypy ${FILE_PATTERN}
 pylint ${FILE_PATTERN} \
     --exit-zero \
     --max-line-length=${LINE_LENGTH} \
-    --disable=missing-docstring
+    --disable=missing-function-docstring

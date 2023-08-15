@@ -1,3 +1,31 @@
+"""
+Cheatsheet Manager
+
+This script provides a command-line interface to manage and access cheatsheets 
+in Markdown format. Users can open specific cheatsheets using their names, 
+list all available cheatsheets, or receive suggestions for similar cheatsheet 
+names using fuzzy string matching.
+
+Usage:
+    python cheatsheet.py <cheatsheet_name>
+    python cheatsheet.py -h | --help
+    python cheatsheet.py -l | --list | --show_all
+
+Options:
+    <cheatsheet_name>      The name of the cheatsheet to be opened.
+    -h, --help             Show usage documentation.
+    -l, --list, --show_all List all available cheatsheet names.
+
+Global Constants:
+    - CHEATSHEETS_FOLDER: 
+        The folder path where cheatsheets in Markdown format are stored.
+    - SIMILARITY_THRESHOLD: A threshold for fuzzy string matching similarity.
+    
+Author:
+    guidodinello
+
+"""
+
 import os
 import subprocess
 import sys
@@ -5,6 +33,7 @@ from pathlib import Path
 from typing import Callable, Iterable, Optional, TypeVar
 
 import fuzzy_string_matcher as sfm
+
 
 from utils import configreader
 

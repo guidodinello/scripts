@@ -1,3 +1,7 @@
+"""
+Setup file for the utils module
+"""
+
 from setuptools import setup, find_packages
 
 setup(

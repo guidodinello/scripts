@@ -1,3 +1,48 @@
+"""
+Open Project Manager
+
+This script provides a command-line interface to manage project paths and their 
+associated names. It allows users to register, view, and access project paths. 
+The script supports adding new project entries, displaying registered projects, 
+and opening project paths in the default file manager and Visual Studio Code.
+If a project name is misspelled or not found, the script provides suggestions 
+for similar project names using fuzzy string matching.
+
+Usage:
+    python project_path_manager.py [--show] [project_name] 
+        [--relative_path <path>] [--add_entry <key> <abs_path>]
+
+Options:
+    project_name           
+        The name of the registered project to be accessed.
+    --relative_path <path> 
+        Specify a relative path within the registered project.
+    --add_entry <key> <abs_path> 
+        Add a new project entry with the provided key and absolute path.
+    --show                 
+        Display a list of registered project names and their associated paths.
+
+Example usage:
+    1. View registered projects:
+       python open.py --show
+
+    2. Access a registered project:
+       python open.py my_project
+
+    3. Access a specific path within a registered project:
+       python open.py my_project --relative_path src/
+
+    4. Add a new project entry:
+       python open.py --add_entry project_key ~/path/to/new_project
+
+Global Constants:
+    - SIMILARITY_THRESHOLD: A threshold for fuzzy string matching similarity.
+    - PATHS_DIR: The path to the configuration file storing project paths.
+
+Author:
+    guidodinello
+"""
+
 import os
 import signal
 import subprocess
@@ -31,7 +76,7 @@ if __name__ == "__main__":
     if project is None:
         if args.show:
             for key, path in PATHS.items():
-                print(f"{key}: {path}")
+                print(f"* {key}: \t{path}")
             sys.exit(0)
         else:
             key, abs_path = args.add_entry
@@ -42,7 +87,8 @@ if __name__ == "__main__":
         project = project.lower()
 
         if project not in PATHS:
-            msg = f"Theres no project registered for the name: {project} \nMaybe you meant:"
+            msg = f"Theres no project registered for the name: {project} \n"
+            msg += "Maybe you meant:"
             print(msg)
 
             # show fuzzy matched projects

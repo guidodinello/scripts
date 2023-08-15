@@ -1,3 +1,19 @@
+"""
+Organize Files and Folders
+
+This script provides a set of command-line functions for interacting with files 
+and directories in the current working directory. Users can perform operations 
+such as moving, listing, showing, and removing files based on provided 
+substrings. The toolbox also supports changing the current working directory 
+and displaying help documentation for each command.
+
+Usage:
+    python file_toolbox.py
+
+Author:
+    guidodinello
+"""
+
 import os
 import functools
 from typing import Callable
