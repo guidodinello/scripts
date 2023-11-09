@@ -29,6 +29,7 @@ Author:
 import os
 import subprocess
 import sys
+from itertools import chain
 from pathlib import Path
 from typing import Callable, Iterable, Optional, TypeVar
 
@@ -66,7 +67,13 @@ def lazy_find(predicate: Callable[[T], bool], iterable: Iterable[T]) -> Optional
 
 
 def cheatsheets():
-    return Path(CHEATSHEETS_FOLDER).glob("*.md")
+    extensions = ["*.md", "*.txt", "*.pdf"]
+    return chain(*(Path(CHEATSHEETS_FOLDER).glob(ext) for ext in extensions))
+
+
+def open_cheatsheet(cheatsheet_file: Path):
+    path = os.path.join(CHEATSHEETS_FOLDER, cheatsheet_file)
+    subprocess.run(["code", path], check=True)
 
 
 if __name__ == "__main__":
@@ -91,26 +98,36 @@ if __name__ == "__main__":
             )
 
             if cheatsheet_file is not None:
-                subprocess.run(
-                    [
-                        "code",
-                        os.path.join(CHEATSHEETS_FOLDER, cheatsheet_file),
-                    ],
-                    check=True,
-                )
+                open_cheatsheet(cheatsheet_file)
                 sys.exit(0)
-            else:
-                print("Cheatsheet not found. Maybe you meant:")
-                similar = sfm.find_most_similar_words(  # type: ignore[attr-defined]
-                    cheatsheet_name, [x.stem.lower() for x in cheatsheets()], 3
-                )
-                recommendations = list(
-                    filter(lambda x: x.distance < SIMILARITY_THRESHOLD, similar)
-                )
-                if len(recommendations) == 0:
-                    print(f"\t* {similar[0].word}")
-                else:
-                    for word, _ in recommendations:
-                        print(f"\t* {word}")
 
+            print("Cheatsheet not found. Maybe you meant:")
+            similar = sfm.find_most_similar_words(  # type: ignore[attr-defined]
+                cheatsheet_name, [x.stem.lower() for x in cheatsheets()], 3
+            )
+            recommendations = list(
+                filter(lambda x: x.distance < SIMILARITY_THRESHOLD, similar)
+            )
+            if len(recommendations) == 0:
+                # if no good enough recommendations, show first similar
+                print(f"\t1- {similar[0].word}")
+                recommendations = [similar[0]]
+            else:
+                for id, (word, _) in enumerate(recommendations):
+                    print(f"\t{id}- {word}")
+
+            read = input("Open a similar cheatsheet? [number/n] ")
+            if read == "n":
+                sys.exit(1)
+
+            try:
+                index = int(read)
+                cheatsheet_file = lazy_find(
+                    lambda x: x.stem.lower() == recommendations[index - 1].word,
+                    cheatsheets(),
+                )
+                open_cheatsheet(cheatsheet_file)  # type: ignore[arg-type]
+                sys.exit(0)
+            except (ValueError, IndexError):
+                print("Invalid input!")
                 sys.exit(1)
