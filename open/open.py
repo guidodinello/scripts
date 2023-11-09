@@ -49,8 +49,13 @@ import subprocess
 import sys
 from argparse import ArgumentParser
 
-# using the rust module
-import fuzzy_string_matcher as sfm
+try:
+    # using the rust module
+    import fuzzy_string_matcher as sfm  # type: ignore[import]
+except ImportError:
+    # fallback to the python module
+    import utils.string_fuzzy_matcher as sfm
+
 
 from utils import configreader
 

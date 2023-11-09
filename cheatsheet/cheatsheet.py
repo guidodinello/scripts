@@ -32,7 +32,10 @@ import sys
 from pathlib import Path
 from typing import Callable, Iterable, Optional, TypeVar
 
-import fuzzy_string_matcher as sfm
+try:
+    import fuzzy_string_matcher as sfm  # type: ignore[import]
+except ImportError:
+    import utils.string_fuzzy_matcher as sfm
 
 
 from utils import configreader
@@ -58,9 +61,7 @@ FOLDER={CHEATSHEETS_FOLDER}
 T = TypeVar("T")
 
 
-def lazy_find(
-    predicate: Callable[[T], bool], iterable: Iterable[T]
-) -> Optional[T]:
+def lazy_find(predicate: Callable[[T], bool], iterable: Iterable[T]) -> Optional[T]:
     return next((x for x in iterable if predicate(x)), None)
 
 
