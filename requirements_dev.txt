@@ -1,4 +1,5 @@
 -r requirements.txt
+setuptools>=68.2.2
 types-setuptools>=68.0.0.3
 black>=23.3.0
 mypy>=1.4.1

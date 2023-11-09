@@ -71,8 +71,8 @@ def cheatsheets():
     return chain(*(Path(CHEATSHEETS_FOLDER).glob(ext) for ext in extensions))
 
 
-def open_cheatsheet(cheatsheet_file: Path):
-    path = os.path.join(CHEATSHEETS_FOLDER, cheatsheet_file)
+def open_cheatsheet(cheatsheet_path: Path):
+    path = os.path.join(CHEATSHEETS_FOLDER, cheatsheet_path)
     subprocess.run(["code", path], check=True)
 
 
@@ -113,8 +113,8 @@ if __name__ == "__main__":
                 print(f"\t1- {similar[0].word}")
                 recommendations = [similar[0]]
             else:
-                for id, (word, _) in enumerate(recommendations):
-                    print(f"\t{id}- {word}")
+                for index, (word, _) in enumerate(recommendations):
+                    print(f"\t{index}- {word}")
 
             read = input("Open a similar cheatsheet? [number/n] ")
             if read == "n":
