@@ -45,6 +45,10 @@ if [ ! -d "${SCRIPTS_DIR}/${VENV_NAME}" ]; then
         maturin develop --release --strip
     fi
     setup_python_venv
+
+    git_hooks_setup_script="./tests/setup_hooks.sh"
+    chmod +x "${git_hooks_setup_script}"
+    "${git_hooks_setup_script}"
 fi
 # if not arguments provided install all supported scripts
 # else install only the provided scripts
