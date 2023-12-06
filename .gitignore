@@ -8,9 +8,10 @@ TODO
 # python related
 __pycache__/
 .mypy_cache/
-venv/
+.venv/
 build/
 utils.egg-info/
+.autoenv.zsh
 
 # rust related
 target/

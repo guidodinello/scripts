@@ -1,8 +1,8 @@
 #!/bin/bash
 
-USE_RUST=1
+USE_RUST=0
 SCRIPTS_DIR="${HOME}/scripts"
-VENV_NAME="venv"
+VENV_NAME=".venv"
 ACTIVATE_VENV="source ${SCRIPTS_DIR}/${VENV_NAME}/bin/activate"
 
 supported_scripts=("open" "cheatsheet")
@@ -13,7 +13,7 @@ function setup_python_venv() {
     ${ACTIVATE_VENV}
     python -m pip install --upgrade pip
     pip3 install -r "${SCRIPTS_DIR}/requirements.txt"
-    pip3 install utils/
+    pip3 install -e ./utils
 }
 
 function add_alias() {
