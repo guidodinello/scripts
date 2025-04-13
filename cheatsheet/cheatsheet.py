@@ -1,9 +1,9 @@
 """
 Cheatsheet Manager
 
-This script provides a command-line interface to manage and access cheatsheets 
-in Markdown format. Users can open specific cheatsheets using their names, 
-list all available cheatsheets, or receive suggestions for similar cheatsheet 
+This script provides a command-line interface to manage and access cheatsheets
+in Markdown format. Users can open specific cheatsheets using their names,
+list all available cheatsheets, or receive suggestions for similar cheatsheet
 names using fuzzy string matching.
 
 Usage:
@@ -17,31 +17,37 @@ Options:
     -l, --list, --show_all List all available cheatsheet names.
 
 Global Constants:
-    - CHEATSHEETS_FOLDER: 
+    - CHEATSHEETS_FOLDER:
         The folder path where cheatsheets in Markdown format are stored.
     - SIMILARITY_THRESHOLD: A threshold for fuzzy string matching similarity.
-    
+
 Author:
     guidodinello
 
 """
 
+import logging
 import os
 import subprocess
 import sys
 from itertools import chain
 from pathlib import Path
-from typing import Callable, Iterable, Optional, TypeVar
+from typing import Callable, Iterable, Optional
+
+from utils import configreader  # type: ignore
+
+logging.basicConfig(level=logging.DEBUG)
 
 try:
     import fuzzy_string_matcher as sfm  # type: ignore[import]
 except ImportError:
-    import utils.string_fuzzy_matcher as sfm
+    logging.debug(
+        "rust implementation <fuzzy_string_matcher> not found using <utils.string_fuzzy_matcher>"
+    )
+    import utils.string_fuzzy_matcher as sfm  # type: ignore
 
 
-from utils import configreader
-
-PATH_DIR = os.path.join(os.path.dirname(__file__), "path.txt")
+PATH_DIR = os.path.join(os.path.dirname(__file__), ".env")
 
 # Configurable Script Constants
 CHEATSHEETS_FOLDER = configreader.read_mapping_file(PATH_DIR)["folder"]
@@ -50,19 +56,16 @@ SIMILARITY_THRESHOLD = 4
 USAGE_DOCS = f"""
 Usage: cheatsheet <cheatsheet_name>
 
-This command opens the <cheatsheet_name>.md 
+This command opens the <cheatsheet_name>.md
 located under FOLDER using in VSCode.
-If no file matches <cheatsheet_name>.md, it will show an error 
+If no file matches <cheatsheet_name>.md, it will show an error
 and print a list of similar files.
 
 FOLDER={CHEATSHEETS_FOLDER}
 """
 
 
-T = TypeVar("T")
-
-
-def lazy_find(predicate: Callable[[T], bool], iterable: Iterable[T]) -> Optional[T]:
+def lazy_find[T](predicate: Callable[[T], bool], iterable: Iterable[T]) -> Optional[T]:
     return next((x for x in iterable if predicate(x)), None)
 
 
@@ -73,7 +76,8 @@ def cheatsheets():
 
 def open_cheatsheet(cheatsheet_path: Path):
     path = os.path.join(CHEATSHEETS_FOLDER, cheatsheet_path)
-    subprocess.run(["code", path], check=True)
+    # subprocess.run(["code", path], check=True)
+    subprocess.run(["xdg-open", path], check=True)
 
 
 if __name__ == "__main__":
@@ -81,11 +85,11 @@ if __name__ == "__main__":
         print(USAGE_DOCS)
         sys.exit(1)
 
-    match (sys.argv[1]):
-        case "-h", "--help":
+    match sys.argv[1]:
+        case "-h" | "--help":
             print(USAGE_DOCS)
             sys.exit(1)
-        case "-l", "--list", "--show_all":
+        case "-l" | "--list" | "--show_all":
             print("Available cheatsheets:")
             for cheatsheet in cheatsheets():
                 print(f"\t* {cheatsheet.stem}")

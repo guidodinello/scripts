@@ -1,43 +1,15 @@
 """
 Open Project Manager
 
-This script provides a command-line interface to manage project paths and their 
-associated names. It allows users to register, view, and access project paths. 
-The script supports adding new project entries, displaying registered projects, 
+This script provides a command-line interface to manage project paths and their
+associated names. It allows users to register, view, and access project paths.
+The script supports adding new project entries, displaying registered projects,
 and opening project paths in the default file manager and Visual Studio Code.
-If a project name is misspelled or not found, the script provides suggestions 
+If a project name is misspelled or not found, the script provides suggestions
 for similar project names using fuzzy string matching.
 
 Usage:
-    python project_path_manager.py [--show] [project_name] 
-        [--relative_path <path>] [--add_entry <key> <abs_path>]
-
-Options:
-    project_name           
-        The name of the registered project to be accessed.
-    --relative_path <path> 
-        Specify a relative path within the registered project.
-    --add_entry <key> <abs_path> 
-        Add a new project entry with the provided key and absolute path.
-    --show                 
-        Display a list of registered project names and their associated paths.
-
-Example usage:
-    1. View registered projects:
-       python open.py --show
-
-    2. Access a registered project:
-       python open.py my_project
-
-    3. Access a specific path within a registered project:
-       python open.py my_project --relative_path src/
-
-    4. Add a new project entry:
-       python open.py --add_entry project_key ~/path/to/new_project
-
-Global Constants:
-    - SIMILARITY_THRESHOLD: A threshold for fuzzy string matching similarity.
-    - PATHS_DIR: The path to the configuration file storing project paths.
+    python project_path_manager.py [--list] [--add_entry <key> <abs_path>] [project_name [--relative_path <path>] [--keep]]
 
 Author:
     guidodinello
@@ -48,79 +20,234 @@ import signal
 import subprocess
 import sys
 from argparse import ArgumentParser
+from logging import DEBUG, Logger
+
+from utils import configreader  # type: ignore
+from utils.logger import get_logger  # type: ignore
+
+logger: Logger = get_logger(__name__)
 
 try:
     # using the rust module
     import fuzzy_string_matcher as sfm  # type: ignore[import]
+
+    logger.debug("Using Rust utils module")
 except ImportError:
     # fallback to the python module
-    import utils.string_fuzzy_matcher as sfm
+    import utils.string_fuzzy_matcher as sfm  # type: ignore
 
-
-from utils import configreader
+    logger.debug("Using Python utils module")
 
 
 SIMILARITY_THRESHOLD = 4
-PATHS_DIR = os.path.join(os.path.dirname(__file__), "paths.txt")
+PATHS_DIR = os.path.join(os.path.dirname(__file__), ".env")
 
-if __name__ == "__main__":
-    PATHS = configreader.read_mapping_file(PATHS_DIR)
 
-    parser = ArgumentParser()
-    mutex_group = parser.add_mutually_exclusive_group(required=True)
+class Command:
+    """Base command interface"""
 
-    mutex_group.add_argument("project_name", nargs="?")
-    mutex_group.add_argument("--relative_path", "--rp")
-    mutex_group.add_argument(
-        "--add_entry", "--ae", nargs=2, metavar=("key", "abs_path")
-    )
-    mutex_group.add_argument("--show", "--s", action="store_true")
-    args = parser.parse_args()
+    def execute(self) -> int:
+        """Execute the command and return exit code"""
+        raise NotImplementedError
 
-    project = args.project_name
-    if project is None:
-        if args.show:
-            for key, path in PATHS.items():
-                print(f"* {key}: \t{path}")
-            sys.exit(0)
-        else:
-            key, abs_path = args.add_entry
-            PATHS[key] = abs_path
-            configreader.add_to_mapping_file({key: abs_path}, PATHS_DIR)
-            sys.exit(0)
-    else:
-        project = project.lower()
 
-        if project not in PATHS:
-            msg = f"Theres no project registered for the name: {project} \n"
-            msg += "Maybe you meant:"
-            print(msg)
+class HelpCommand(Command):
+    def __init__(self, parser: ArgumentParser):
+        self.parser = parser
 
-            # show fuzzy matched projects
+    def execute(self) -> int:
+        self.parser.print_help()
+        return 0
+
+
+class ListProjectsCommand(Command):
+    def __init__(self, paths: dict[str, str]):
+        self.paths = paths
+
+    def execute(self) -> int:
+        max_length = max(len(key) for key in self.paths.keys())
+        for key, path in self.paths.items():
+            print(f"* {key:{max_length}}: \t{path}")
+        return 0
+
+
+class AddProjectCommand(Command):
+    def __init__(self, key: str, abs_path: str, paths: dict[str, str], paths_dir: str):
+        self.key = key
+        self.abs_path = abs_path
+        self.paths = paths
+        self.paths_dir = paths_dir
+
+    def execute(self) -> int:
+        self.paths[self.key] = self.abs_path
+        configreader.add_to_mapping_file({self.key: self.abs_path}, self.paths_dir)
+        logger.info(f"Added new project: {self.key} -> {self.abs_path}")
+        return 0
+
+
+class OpenProjectCommand(Command):
+    def __init__(
+        self,
+        project_name: str,
+        paths: dict[str, str],
+        relative_path: str | None = None,
+        keep_terminal: bool = False,
+    ):
+        self.project_name = project_name.lower()
+        self.paths = paths
+        self.relative_path = relative_path
+        self.keep_terminal = keep_terminal
+
+    def execute(self) -> int:
+        if self.project_name not in self.paths:
+            return self._handle_not_found()
+
+        path_project = self.paths[self.project_name]
+        if self.relative_path:
+            path_project = os.path.join(path_project, self.relative_path)
+
+        # Open file manager
+        try:
+            subprocess.run(["xdg-open", path_project], check=True)
+            logger.info(f"Opened file manager for: {path_project}")
+        except subprocess.SubprocessError as e:
+            logger.error(f"Failed to open file manager: {e}")
+            return 1
+
+        # Open VS Code
+        try:
+            subprocess.run(["code", path_project], check=True)
+            logger.info(f"Opened VS Code for: {path_project}")
+        except subprocess.SubprocessError as e:
+            logger.error(f"Failed to open VS Code: {e}")
+            return 1
+
+        # Close calling terminal if requested
+        if not self.keep_terminal:
+            try:
+                os.kill(os.getppid(), signal.SIGHUP)
+                logger.info("Closed parent terminal")
+            except OSError as e:
+                logger.error(f"Failed to close parent terminal: {e}")
+
+        return 0
+
+    def _handle_not_found(self) -> int:
+        """Handle case when project name is not found"""
+        msg = f"There's no project registered for the name: {self.project_name}\n"
+        msg += "Maybe you meant:"
+        print(msg)
+
+        # Show fuzzy matched projects
+        try:
             similar = sfm.find_most_similar_words(  # type: ignore[attr-defined]
-                project, list(PATHS.keys()), 3
+                self.project_name,
+                list(self.paths.keys()),
+                3,
             )
-            recommendations = list(
-                filter(lambda x: x.distance < SIMILARITY_THRESHOLD, similar)
-            )
-            # if theres no name good enough (above the threshold)
-            if len(recommendations) == 0:
-                # just show the most similar
+
+            recommendations = [
+                match for match in similar if match.distance < SIMILARITY_THRESHOLD
+            ]
+
+            # If there's no name good enough (above the threshold)
+            if not recommendations:
+                # Just show the most similar
                 print(f"\t* {similar[0].word}")
             else:
-                for word, _ in recommendations:
-                    print(f"\t* {word}")
+                for match in recommendations:
+                    print(f"\t* {match.word}")
 
-            sys.exit(1)
+            logger.warning(
+                f"Project not found: {self.project_name}, suggestions provided",
+            )
 
-        path_project = PATHS[project]
-        if args.relative_path:
-            path_project = path_project.joinpath(args.relative_path)
+        except Exception as e:
+            logger.error(f"Error during fuzzy matching: {e}")
+            print("Error finding similar project names")
 
-        # open the file system manager
-        subprocess.run(["xdg-open", path_project], check=True)
-        # open vscode
-        subprocess.run(["code", path_project], check=True)
+        return 1
 
-        # close calling terminal
-        os.kill(os.getppid(), signal.SIGHUP)
+
+class CommandFactory:
+    @staticmethod
+    def create_command(
+        parser: ArgumentParser,
+        paths: dict[str, str],
+        paths_dir: str,
+    ) -> Command:
+        args = parser.parse_args()
+
+        if args.debug:
+            logger.setLevel(DEBUG)
+
+        if args.project_name:
+            return OpenProjectCommand(
+                args.project_name,
+                paths,
+                args.relative_path,
+                args.keep,
+            )
+        elif args.list:
+            return ListProjectsCommand(paths)
+        elif args.add_entry:
+            key, abs_path = args.add_entry
+            return AddProjectCommand(key, abs_path, paths, paths_dir)
+        else:
+            return HelpCommand(parser)
+
+
+def configure_cli_args():
+    parser = ArgumentParser(description="Open Project Manager")
+    parser.add_argument("project_name", nargs="?", help="Name of the project to open")
+    parser.add_argument(
+        "--debug",
+        "-d",
+        action="store_true",
+        help="Print logged actions",
+    )
+    parser.add_argument(
+        "--relative_path",
+        "-rp",
+        help="Relative path from execute path to project",
+    )
+    parser.add_argument(
+        "--add_entry",
+        "-ae",
+        nargs=2,
+        metavar=("key", "abs_path"),
+        help="Add a new project entry",
+    )
+    parser.add_argument(
+        "--list",
+        "-l",
+        action="store_true",
+        help="List all registered projects",
+    )
+    parser.add_argument(
+        "--keep",
+        "-k",
+        action="store_true",
+        help="Keep the terminal open after executing",
+    )
+    return parser
+
+
+def main():
+    try:
+        paths = configreader.read_mapping_file(PATHS_DIR)
+        parser = configure_cli_args()
+
+        command = CommandFactory.create_command(parser, paths, PATHS_DIR)
+        exit_code = command.execute()
+
+        return exit_code
+
+    except Exception as e:
+        logger.error(f"Unhandled exception: {e}", exc_info=True)
+        print(f"An error occurred: {e}")
+        return 1
+
+
+if __name__ == "__main__":
+    sys.exit(main())

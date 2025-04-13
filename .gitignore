@@ -15,3 +15,8 @@ utils.egg-info/
 
 # rust related
 target/
+
+logs
+
+.env*
+!.env.example
