@@ -43,3 +43,22 @@ repos:
             additional_dependencies: [types-requests, types-PyYAML]
             args: [--ignore-missing-imports]
             exclude: ^tests/
+
+    - repo: local
+      hooks:
+          - id: pylint
+            name: pylint
+            entry: pylint
+            language: system
+            types: [python]
+            require_serial: true
+            args: [
+                    "-rn",
+                    "-sn",
+                    "--max-line-length=120",
+                    "--disable=missing-function-docstring,\
+                    missing-module-docstring,\
+                    missing-class-docstring,\
+                    too-few-public-methods,\
+                    c-extension-no-member",
+                ]
