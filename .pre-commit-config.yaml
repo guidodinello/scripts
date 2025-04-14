@@ -69,4 +69,6 @@ repos:
             name: pytest
             entry: pytest
             language: system
-            stages: [push]
+            pass_filenames: false
+            files: ^tests/
+            stages: [pre-push]

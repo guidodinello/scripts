@@ -60,3 +60,6 @@ clean:
 rust-build:
 	cd rust_utils/fuzzy_string_matcher && poetry run maturin develop --release
 	@echo "Rust extension built and installed in the current Python environment"
+
+test:
+	poetry run pytest
