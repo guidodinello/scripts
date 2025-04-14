@@ -1,10 +1,10 @@
 """
 Organize Files and Folders
 
-This script provides a set of command-line functions for interacting with files 
-and directories in the current working directory. Users can perform operations 
-such as moving, listing, showing, and removing files based on provided 
-substrings. The toolbox also supports changing the current working directory 
+This script provides a set of command-line functions for interacting with files
+and directories in the current working directory. Users can perform operations
+such as moving, listing, showing, and removing files based on provided
+substrings. The toolbox also supports changing the current working directory
 and displaying help documentation for each command.
 
 Usage:
@@ -14,15 +14,19 @@ Author:
     guidodinello
 """
 
-import os
-import functools
-from typing import Callable
 import code
+import functools
+import os
+from collections.abc import Callable
+
+from utils.logger import get_logger
+
+logger = get_logger()
 
 
 def str_matcher_iterator(substr: str, case_sensitive: bool):
     transform = (lambda x: x) if case_sensitive else (lambda x: x.lower())
-    for name in os.listdir("."):
+    for name in os.listdir("./"):
         if transform(substr) in transform(name):
             yield name
 

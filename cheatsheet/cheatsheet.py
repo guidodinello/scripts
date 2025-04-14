@@ -26,25 +26,18 @@ Author:
 
 """
 
-import logging
 import os
 import subprocess
 import sys
 from itertools import chain
 from pathlib import Path
-from typing import Callable, Iterable, Optional
 
-from utils import configreader  # type: ignore
+from utils import configreader
+from utils.functional_utils import lazy_find
+from utils.logger import get_logger
+from utils.sfm import sfm
 
-logging.basicConfig(level=logging.DEBUG)
-
-try:
-    import fuzzy_string_matcher as sfm  # type: ignore[import]
-except ImportError:
-    logging.debug(
-        "rust implementation <fuzzy_string_matcher> not found using <utils.string_fuzzy_matcher>"
-    )
-    import utils.string_fuzzy_matcher as sfm  # type: ignore
+logger = get_logger()
 
 
 PATH_DIR = os.path.join(os.path.dirname(__file__), ".env")
@@ -63,10 +56,6 @@ and print a list of similar files.
 
 FOLDER={CHEATSHEETS_FOLDER}
 """
-
-
-def lazy_find[T](predicate: Callable[[T], bool], iterable: Iterable[T]) -> Optional[T]:
-    return next((x for x in iterable if predicate(x)), None)
 
 
 def cheatsheets():
@@ -98,7 +87,8 @@ if __name__ == "__main__":
             cheatsheet_name = cheatsheet_name.lower()  # pylint: disable=C0103
 
             cheatsheet_file = lazy_find(
-                lambda x: x.stem.lower() == cheatsheet_name, cheatsheets()
+                lambda x: x.stem.lower() == cheatsheet_name,
+                cheatsheets(),
             )
 
             if cheatsheet_file is not None:
@@ -107,10 +97,12 @@ if __name__ == "__main__":
 
             print("Cheatsheet not found. Maybe you meant:")
             similar = sfm.find_most_similar_words(  # type: ignore[attr-defined]
-                cheatsheet_name, [x.stem.lower() for x in cheatsheets()], 3
+                cheatsheet_name,
+                [x.stem.lower() for x in cheatsheets()],
+                3,
             )
             recommendations = list(
-                filter(lambda x: x.distance < SIMILARITY_THRESHOLD, similar)
+                filter(lambda x: x.distance < SIMILARITY_THRESHOLD, similar),
             )
             if len(recommendations) == 0:
                 # if no good enough recommendations, show first similar

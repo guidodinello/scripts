@@ -16,8 +16,11 @@ CORPUS = [
 
 if __name__ == "__main__":
     # we ignore mypy error not recognizing the function inside the rust module
+    # pylint: disable-next=no-member
     similar_words = fsm.find_most_similar_words(  # type:ignore
-        "yellow", CORPUS, len(CORPUS)
+        "yellow",
+        CORPUS,
+        len(CORPUS),
     )
     for word in similar_words:
         print(word.word, word.distance)

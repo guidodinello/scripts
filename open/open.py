@@ -9,7 +9,8 @@ If a project name is misspelled or not found, the script provides suggestions
 for similar project names using fuzzy string matching.
 
 Usage:
-    python project_path_manager.py [--list] [--add_entry <key> <abs_path>] [project_name [--relative_path <path>] [--keep]]
+    python project_path_manager.py [--list] [--add_entry <key> <abs_path>]
+        [project_name [--relative_path <path>] [--keep]]
 
 Author:
     guidodinello
@@ -20,76 +21,62 @@ import signal
 import subprocess
 import sys
 from argparse import ArgumentParser
-from logging import DEBUG, Logger
+from logging import DEBUG
+from pathlib import Path
+from typing import Protocol
 
-from utils import configreader  # type: ignore
-from utils.logger import get_logger  # type: ignore
+from utils import configreader
+from utils.logger import get_logger
+from utils.sfm import sfm
 
-logger: Logger = get_logger(__name__)
-
-try:
-    # using the rust module
-    import fuzzy_string_matcher as sfm  # type: ignore[import]
-
-    logger.debug("Using Rust utils module")
-except ImportError:
-    # fallback to the python module
-    import utils.string_fuzzy_matcher as sfm  # type: ignore
-
-    logger.debug("Using Python utils module")
-
+logger = get_logger()
 
 SIMILARITY_THRESHOLD = 4
 PATHS_DIR = os.path.join(os.path.dirname(__file__), ".env")
 
 
-class Command:
-    """Base command interface"""
-
-    def execute(self) -> int:
-        """Execute the command and return exit code"""
-        raise NotImplementedError
+class Command(Protocol):
+    def execute(self) -> int: ...
 
 
-class HelpCommand(Command):
+class HelpCommand:
     def __init__(self, parser: ArgumentParser):
         self.parser = parser
 
-    def execute(self) -> int:
+    def execute(self):
         self.parser.print_help()
         return 0
 
 
-class ListProjectsCommand(Command):
-    def __init__(self, paths: dict[str, str]):
+class ListProjectsCommand:
+    def __init__(self, paths: dict[str, Path]):
         self.paths = paths
 
-    def execute(self) -> int:
+    def execute(self):
         max_length = max(len(key) for key in self.paths.keys())
         for key, path in self.paths.items():
             print(f"* {key:{max_length}}: \t{path}")
         return 0
 
 
-class AddProjectCommand(Command):
-    def __init__(self, key: str, abs_path: str, paths: dict[str, str], paths_dir: str):
+class AddProjectCommand:
+    def __init__(self, key: str, abs_path: str, paths: dict[str, Path], paths_dir: str):
         self.key = key
         self.abs_path = abs_path
         self.paths = paths
         self.paths_dir = paths_dir
 
-    def execute(self) -> int:
-        self.paths[self.key] = self.abs_path
+    def execute(self):
         configreader.add_to_mapping_file({self.key: self.abs_path}, self.paths_dir)
-        logger.info(f"Added new project: {self.key} -> {self.abs_path}")
+        logger.info("Added new project: %s ->  %s", self.key, self.abs_path)
         return 0
 
 
-class OpenProjectCommand(Command):
+class OpenProjectCommand:
     def __init__(
         self,
         project_name: str,
-        paths: dict[str, str],
+        paths: dict[str, Path],
         relative_path: str | None = None,
         keep_terminal: bool = False,
     ):
@@ -98,28 +85,28 @@ class OpenProjectCommand(Command):
         self.relative_path = relative_path
         self.keep_terminal = keep_terminal
 
-    def execute(self) -> int:
+    def execute(self):
         if self.project_name not in self.paths:
             return self._handle_not_found()
 
         path_project = self.paths[self.project_name]
         if self.relative_path:
-            path_project = os.path.join(path_project, self.relative_path)
+            path_project = Path(path_project, self.relative_path)
 
         # Open file manager
         try:
             subprocess.run(["xdg-open", path_project], check=True)
-            logger.info(f"Opened file manager for: {path_project}")
+            logger.info("Opened file manager for:  %s", path_project)
         except subprocess.SubprocessError as e:
-            logger.error(f"Failed to open file manager: {e}")
+            logger.error("Failed to open file manager:  %s", e)
             return 1
 
         # Open VS Code
         try:
             subprocess.run(["code", path_project], check=True)
-            logger.info(f"Opened VS Code for: {path_project}")
+            logger.info("Opened VS Code for:  %s", path_project)
         except subprocess.SubprocessError as e:
-            logger.error(f"Failed to open VS Code: {e}")
+            logger.error("Failed to open VS Code:  %s", e)
             return 1
 
         # Close calling terminal if requested
@@ -128,7 +115,7 @@ class OpenProjectCommand(Command):
                 os.kill(os.getppid(), signal.SIGHUP)
                 logger.info("Closed parent terminal")
             except OSError as e:
-                logger.error(f"Failed to close parent terminal: {e}")
+                logger.error("Failed to close parent terminal:  %s", e)
 
         return 0
 
@@ -139,32 +126,31 @@ class OpenProjectCommand(Command):
         print(msg)
 
         # Show fuzzy matched projects
+        similar = []
         try:
             similar = sfm.find_most_similar_words(  # type: ignore[attr-defined]
                 self.project_name,
                 list(self.paths.keys()),
                 3,
             )
-
-            recommendations = [
-                match for match in similar if match.distance < SIMILARITY_THRESHOLD
-            ]
-
-            # If there's no name good enough (above the threshold)
-            if not recommendations:
-                # Just show the most similar
-                print(f"\t* {similar[0].word}")
-            else:
-                for match in recommendations:
-                    print(f"\t* {match.word}")
-
-            logger.warning(
-                f"Project not found: {self.project_name}, suggestions provided",
-            )
-
+        # pylint: disable-next=broad-exception-caught
         except Exception as e:
-            logger.error(f"Error during fuzzy matching: {e}")
+            logger.error("Error during fuzzy matching:  %s", e)
             print("Error finding similar project names")
+
+        recommendations = [
+            match for match in similar if match.distance < SIMILARITY_THRESHOLD
+        ]
+
+        # If there's no name good enough (above the threshold)
+        if not recommendations:
+            # Just show the most similar
+            print(f"\t* {similar[0].word}")
+        else:
+            for match in recommendations:
+                print(f"\t* {match.word}")
+
+        logger.debug("Project not found: %s, suggestions provided", self.project_name)
 
         return 1
 
@@ -173,7 +159,7 @@ class CommandFactory:
     @staticmethod
     def create_command(
         parser: ArgumentParser,
-        paths: dict[str, str],
+        paths: dict[str, Path],
         paths_dir: str,
     ) -> Command:
         args = parser.parse_args()
@@ -188,13 +174,15 @@ class CommandFactory:
                 args.relative_path,
                 args.keep,
             )
-        elif args.list:
+
+        if args.list:
             return ListProjectsCommand(paths)
-        elif args.add_entry:
+
+        if args.add_entry:
             key, abs_path = args.add_entry
             return AddProjectCommand(key, abs_path, paths, paths_dir)
-        else:
-            return HelpCommand(parser)
+
+        return HelpCommand(parser)
 
 
 def configure_cli_args():
@@ -243,8 +231,9 @@ def main():
 
         return exit_code
 
+    # pylint: disable-next=broad-exception-caught
     except Exception as e:
-        logger.error(f"Unhandled exception: {e}", exc_info=True)
+        logger.error("Unhandled exception: %s", e, exc_info=True)
         print(f"An error occurred: {e}")
         return 1
 
