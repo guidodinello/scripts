@@ -593,4 +593,4 @@ rust = ["maturin"]
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.12"
-content-hash = "db44b33bdc15cc451c529452df3a51a02af4f9a38610421d8cb49f5bdc62a27d"
+content-hash = "95748357afe2672c3e23ef6dbdcec804f676799cdeb5779c1f02c8177dbee93d"

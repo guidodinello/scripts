@@ -24,11 +24,11 @@ build-backend = "poetry.core.masonry.api"
 
 [project.optional-dependencies]
 dev = [
-    "pytest>=8.3.3",
+    "pytest>=8.3.5",
     "black>=24.10.0",
     "ruff>=0.8.0",
     "mypy>=1.13.0",
     "pre-commit>=4.0.1",
-    "pylint>=3.3.6"
+    "pylint>=3.3.6",
 ]
 rust = ["maturin>=1.0.0"]
