@@ -1,4 +1,5 @@
-from typing import Iterable, NamedTuple
+from collections.abc import Iterable
+from typing import NamedTuple
 
 
 class WordDistance(NamedTuple):
@@ -9,7 +10,9 @@ class WordDistance(NamedTuple):
 
 
 def find_most_similar_words(
-    obj_word: str, word_list: Iterable[str], num_results: int = 10
+    obj_word: str,
+    word_list: Iterable[str],
+    num_results: int = 10,
 ) -> list[WordDistance]:
     """Finds the most similar words to the obj_word in the given word_list
     Args:
@@ -22,7 +25,8 @@ def find_most_similar_words(
     """
     distances = [
         WordDistance(
-            word=word, distance=damerau_levenshtein_distance(obj_word, word)
+            word=word,
+            distance=damerau_levenshtein_distance(obj_word, word),
         )
         for word in word_list
     ]
@@ -71,7 +75,8 @@ def damerau_levenshtein_distance(str1: str, str2: str) -> int:
                 and str1[i - 2] == str2[j - 1]
             ):
                 distances[i][j] = min(
-                    distances[i][j], distances[i - 2][j - 2] + cost
+                    distances[i][j],
+                    distances[i - 2][j - 2] + cost,
                 )  # Transposition
 
     return distances[len_str1][len_str2]

@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import Dict, Iterable
+from collections.abc import Iterable
 
 
 def read_mapping_file(abs_path: str) -> dict[str, Path]:
@@ -11,7 +11,7 @@ def read_mapping_file(abs_path: str) -> dict[str, Path]:
         dict[str, Path]: a dict with key as the key and value as the value
     """
     mapping = {}
-    with open(abs_path, "r", encoding="utf-8") as file:
+    with open(abs_path, encoding="utf-8") as file:
         for line in file:
             line = line.strip()
             if line == "" or line.startswith("#"):
@@ -21,7 +21,7 @@ def read_mapping_file(abs_path: str) -> dict[str, Path]:
     return mapping
 
 
-def add_to_mapping_file(new_entries: Dict[str, str], abs_path: str) -> None:
+def add_to_mapping_file(new_entries: dict[str, str], abs_path: str) -> None:
     """Adds new entries to the mapping file.
     This means appending to the mapping file.
     Args:
@@ -35,7 +35,8 @@ def add_to_mapping_file(new_entries: Dict[str, str], abs_path: str) -> None:
 
 
 def remove_form_mapping_file(
-    to_remove_entries: Iterable[str], abs_path: str
+    to_remove_entries: Iterable[str],
+    abs_path: str,
 ) -> None:
     """Removes entries from the mapping file. This implies reading the file,
     removing the entries and writing the file again.
@@ -43,7 +44,7 @@ def remove_form_mapping_file(
         to_remove_entries (Iterable[str]): _description_
         abs_path (str): _description_
     """
-    with open(abs_path, "r", encoding="utf-8") as file:
+    with open(abs_path, encoding="utf-8") as file:
         lines = file.readlines()
     with open(abs_path, "w", encoding="utf-8") as file:
         for line in lines:
