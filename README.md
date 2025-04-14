@@ -6,39 +6,86 @@ Collection of useful scripts that I made to automate various tasks.
 
 ### Installation
 
-Call the installation script and you're good to go:
+You can install the scripts using the Makefile:
 
 ```bash
-    chmod +x install.sh
-    ./install.sh
+# Basic installation
+make install
+
+# Installation with development tools
+make install-dev
+
+# Installation with Rust extensions (better performance)
+make install-rust
+
+# Full installation with development tools and Rust extensions
+make install-dev-rust
 ```
 
-You can optionally pass the name of the scripts and it will only install those:
+After installation, you can set up shell aliases and completions:
 
 ```bash
-    ./install.sh script1 script2 script3
+make setup
 ```
 
-It simply creates a virtual environment inside the automater folder (if it doesn't exist) and pip installs the requirements.
-Furthermore, if the rust flag is set to true, it will also compile the rust_utils module and use that instead of the python one.
+This will add aliases to your shell configuration file (`.bashrc` or `.zshrc`) and create shell completions for better command-line experience. You'll need to run `source ~/.bashrc` (or `source ~/.zshrc`) after setup to apply the changes.
 
-Finally, the installer adds a bash alias for each script in the .bashrc file. This allows you to call the scripts from anywhere in the terminal.
+The setup creates aliases for each script, allowing you to call them from anywhere in the terminal:
 
 ```bash
 open <project_key>
+cheatsheet <cheatsheet_name>
+organize
 ```
 
-#### Developing
+### Available Scripts
+
+- **open**: Quickly navigate to your projects with file manager and VS Code
+- **cheatsheet**: Access your markdown cheatsheets with fuzzy matching
+- **organize**: Command-line utilities for organizing files
+
+### Development
 
 If you want to contribute to this project, you can do so by forking the repository and creating a pull request.
 
-You may want to run the script that sets up some git hooks to ensure that the code is formatted correctly and that the tests pass before pushing.
+You can set up the development environment with:
 
 ```bash
-    chmod +x ./tests/setup_hooks.sh
-    ./tests/setup_hooks.sh
+make install-dev
 ```
 
-#### Future improvements
+This will install all development dependencies and set up pre-commit hooks.
 
--   Add more scripts
+To run the tests:
+
+```bash
+make test
+```
+
+For code quality checks:
+
+```bash
+make lint
+make format
+```
+
+### Performance with Rust
+
+For better performance, you can use the Rust implementation of the fuzzy string matcher:
+
+```bash
+make install-rust
+```
+
+To verify that the Rust module is properly installed:
+
+```bash
+make check-rust
+```
+
+### Future Improvements
+
+- [ ] Allow the user to add some custom command to the open script (and persist it). For instance, if some project needs to spin up a database docker container, that would be useful.
+- [ ] Add more comprehensive logging
+- [ ] Implement unit testing
+- [ ] Add more scripts
