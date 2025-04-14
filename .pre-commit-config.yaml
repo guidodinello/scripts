@@ -62,3 +62,11 @@ repos:
                     too-few-public-methods,\
                     c-extension-no-member",
                 ]
+
+    - repo: local
+      hooks:
+          - id: pytest
+            name: pytest
+            entry: pytest
+            language: system
+            stages: [push]
