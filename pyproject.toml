@@ -1,0 +1,34 @@
+[project]
+name = "scripts"
+version = "0.1.0"
+description = "Collection of general tasks automation scripts"
+authors = [
+    {name = "Guido Dinello",email = "guido.dinello@gmail.com"}
+]
+license = {text = "MIT"}
+readme = "README.md"
+requires-python = ">=3.12"
+
+
+[tool.poetry]
+packages = [
+    { include = "cheatsheet" },
+    { include = "open"},
+    { include = "organize" },
+    { include = "utils" },
+]
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.3.3",
+    "black>=24.10.0",
+    "ruff>=0.8.0",
+    "mypy>=1.13.0",
+    "pre-commit>=4.0.1",
+    "pylint>=3.3.6"
+]
+rust = ["maturin>=1.0.0"]
