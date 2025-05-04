@@ -2,25 +2,10 @@
 name = "scripts"
 version = "0.1.0"
 description = "Collection of general tasks automation scripts"
-authors = [
-    {name = "Guido Dinello",email = "guido.dinello@gmail.com"}
-]
-license = {text = "MIT"}
-readme = "README.md"
+authors = [{ name = "Guido Dinello", email = "guido.dinello@gmail.com" }]
 requires-python = ">=3.12"
-
-
-[tool.poetry]
-packages = [
-    { include = "cheatsheet" },
-    { include = "open"},
-    { include = "organize" },
-    { include = "utils" },
-]
-
-[build-system]
-requires = ["poetry-core>=2.0.0,<3.0.0"]
-build-backend = "poetry.core.masonry.api"
+readme = "README.md"
+license = { text = "MIT" }
 
 [project.optional-dependencies]
 dev = [
@@ -32,3 +17,23 @@ dev = [
     "pylint>=3.3.6",
 ]
 rust = ["maturin>=1.0.0"]
+
+[tool.hatch.build.targets.sdist]
+include = [
+    "cheatsheet",
+    "open",
+    "organize",
+    "utils",
+]
+
+[tool.hatch.build.targets.wheel]
+include = [
+    "cheatsheet",
+    "open",
+    "organize",
+    "utils",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
