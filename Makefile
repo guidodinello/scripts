@@ -15,18 +15,18 @@ help:
 	@echo "  make clean          - Clean up build artifacts"
 
 install:
-	poetry install
+	uv pip install -e .
 
 install-dev:
-	poetry install --extras dev
-	poetry run pre-commit install
+	uv pip install -e ".[dev]"
+	pre-commit install
 
 install-rust: install
-	poetry install --extras rust
+	uv pip install -e ".[rust]"
 	$(MAKE) rust-build
 
 install-dev-rust: install-dev
-	poetry install --all-extras
+	uv pip install -e ".[dev,rust]"
 	$(MAKE) rust-build
 
 setup:
@@ -34,20 +34,20 @@ setup:
 	@./setup.sh
 
 lint:
-	poetry run ruff check .
-	poetry run mypy .
-	poetry run pylint cheatsheet open organize utils --max-line-length=120 \
+	ruff check .
+	mypy .
+	pylint cheatsheet open organize utils --max-line-length=120 \
 		--disable=missing-function-docstring,missing-module-docstring,missing-class-docstring,too-few-public-methods,c-extension-no-member
 
 format:
-	poetry run black .
-	poetry run ruff check --fix .
+	black .
+	ruff check --fix .
 
 test:
-	poetry run pytest
+	pytest
 
 precommit:
-	poetry run pre-commit run --all-files
+	pre-commit run --all-files
 
 # Clean up build artifacts
 clean:
@@ -58,5 +58,5 @@ clean:
 
 # Build the Rust Python extension
 rust-build:
-	cd rust_utils/fuzzy_string_matcher && poetry run maturin develop --release
+	cd rust_utils/fuzzy_string_matcher && maturin develop --release
 	@echo "Rust extension built and installed in the current Python environment"
