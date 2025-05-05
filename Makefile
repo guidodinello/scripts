@@ -34,17 +34,17 @@ setup:
 	@./setup.sh
 
 lint:
-	ruff check .
-	mypy .
-	pylint cheatsheet open organize utils --max-line-length=120 \
+	uv run ruff check .
+	uv run mypy .
+	uv run pylint cheatsheet open organize utils --max-line-length=120 \
 		--disable=missing-function-docstring,missing-module-docstring,missing-class-docstring,too-few-public-methods,c-extension-no-member
 
 format:
-	black .
-	ruff check --fix .
+	uv run black .
+	uv run ruff check --fix .
 
 test:
-	pytest
+	uv run pytest
 
 precommit:
 	pre-commit run --all-files
