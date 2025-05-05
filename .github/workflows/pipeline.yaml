@@ -8,27 +8,30 @@ on:
       - main
 
 jobs:
-  quality:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
+    quality:
+        runs-on: ubuntu-latest
+        steps:
+          - uses: actions/checkout@v4
 
-      - name: Install uv
-        uses: astral-sh/setup-uv@v5
-        with:
-            enable-cache: true
-            cache-dependency-glob: "uv.lock"
+          - name: Install uv
+            uses: astral-sh/setup-uv@v5
+            with:
+                enable-cache: true
+                cache-dependency-glob: "uv.lock"
 
-      - name: "Set up Python"
-        uses: actions/setup-python@v5
-        with:
-          python-version-file: ".python-version"
+          - name: "Set up Python"
+            uses: actions/setup-python@v5
+            with:
+              python-version-file: ".python-version"
 
-      - name: Install the project
-        run: uv sync --locked --all-groups
+          - name: Create virtual environment and install dependencies
+            run: |
+              uv venv .venv
+              source .venv/bin/activate
+              uv pip install -e ".[dev]"
 
-      - name: Run quality checks
-        run: |
-            source .venv/bin/activate
-            make lint
-            make test
+          - name: Run quality checks
+            run: |
+              source .venv/bin/activate
+              make lint
+              make test
