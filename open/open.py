@@ -34,6 +34,25 @@ logger = get_logger()
 SIMILARITY_THRESHOLD = 4
 PATHS_DIR = os.path.join(os.path.dirname(__file__), ".env")
 
+OPEN_FILE_MANAGER = False
+
+
+def cleaned_env():
+    env = os.environ.copy()
+
+    env.pop("VIRTUAL_ENV", None)
+
+    if "PATH" in env:
+        paths = env["PATH"].split(":")
+        cleaned_paths = [
+            p
+            for p in paths
+            if not p.endswith("/.venv/bin") and not p.endswith("/venv/bin")
+        ]
+        env["PATH"] = ":".join(cleaned_paths)
+
+    return env
+
 
 class Command(Protocol):
     def execute(self) -> int: ...
@@ -93,21 +112,22 @@ class OpenProjectCommand:
         if self.relative_path:
             path_project = Path(path_project, self.relative_path)
 
-        # Open file manager
-        try:
-            subprocess.run(["xdg-open", path_project], check=True)
-            logger.info("Opened file manager for:  %s", path_project)
-        except subprocess.SubprocessError as e:
-            logger.error("Failed to open file manager:  %s", e)
-            return 1
-
         # Open VS Code
         try:
-            subprocess.run(["code", path_project], check=True)
+            subprocess.run(["code", path_project], env=cleaned_env(), check=True)
             logger.info("Opened VS Code for:  %s", path_project)
         except subprocess.SubprocessError as e:
             logger.error("Failed to open VS Code:  %s", e)
             return 1
+
+        if OPEN_FILE_MANAGER:
+            # Open file manager
+            try:
+                subprocess.run(["xdg-open", path_project], check=True)
+                logger.info("Opened file manager for:  %s", path_project)
+            except subprocess.SubprocessError as e:
+                logger.error("Failed to open file manager:  %s", e)
+                return 1
 
         # Close calling terminal if requested
         if not self.keep_terminal:
