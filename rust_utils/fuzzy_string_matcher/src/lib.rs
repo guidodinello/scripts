@@ -1,6 +1,15 @@
 use pyo3::prelude::*;
-// allow to unpack the struct in python
-#[pyclass] #[derive(Clone)]
+
+/// Represents a word and its distance from a target word.
+///
+/// This struct holds both the word itself and its Damerau-Levenshtein distance
+/// from a reference word. It can be unpacked in Python like a tuple.
+///
+/// Attributes:
+///     word (str): The word being compared
+///     distance (int): The Damerau-Levenshtein distance from the target word
+#[pyclass]
+#[derive(Clone)]
 pub struct WordDistance {
     #[pyo3(get)]
     pub word: String,
@@ -20,10 +29,10 @@ impl Iter {
     fn __next__(mut slf: PyRefMut<'_, Self>) -> Option<PyObject> {
         if slf.index == 0 {
             slf.index += 1;
-            Some(slf.word_distance.word.to_object(slf.py()))
+            Some(slf.word_distance.word.clone().into_py(slf.py()))
         } else if slf.index == 1 {
             slf.index += 1;
-            Some(slf.word_distance.distance.to_object(slf.py()))
+            Some(slf.word_distance.distance.into_py(slf.py()))
         } else {
             None
         }
@@ -78,18 +87,36 @@ fn damerau_levenshtein(word1: &str, word2: &str) -> usize {
     matrix[word1_len][word2_len]
 }
 
+/// Find the most similar words to a target word using Damerau-Levenshtein distance.
+///
+/// This function calculates the Damerau-Levenshtein edit distance between the target
+/// word and each word in the provided list, then returns the N most similar matches
+/// sorted by distance (lowest distance first).
+///
+/// Args:
+///     obj_word (str): The target word to match against
+///     word_list (list[str]): List of words to search through
+///     num_results (int): Maximum number of results to return
+///
+/// Returns:
+///     list[WordDistance]: List of WordDistance objects sorted by similarity (closest matches first)
+///
+/// Examples:
+///     >>> find_most_similar_words("hello", ["helo", "world", "help"], 2)
+///     [WordDistance(word="helo", distance=1), WordDistance(word="help", distance=2)]
 #[pyfunction]
+#[pyo3(signature = (obj_word, word_list, num_results))]
 fn find_most_similar_words(
-    obj_word: &str,
-    word_list: Vec<&str>,
+    obj_word: String,
+    word_list: Vec<String>,
     num_results: usize,
 ) -> PyResult<Vec<WordDistance>> {
     let mut distances: Vec<WordDistance> = word_list
         .iter()
         .map(|word| {
-            let distance = damerau_levenshtein(obj_word, word);
+            let distance = damerau_levenshtein(&obj_word, word);
             WordDistance {
-                word: word.to_string(),
+                word: word.clone(),
                 distance,
             }
         })
@@ -101,11 +128,19 @@ fn find_most_similar_words(
 }
 
 
-/// A Python module implemented in Rust. The name of this function must match
-/// the `lib.name` setting in the `Cargo.toml`, else Python will not be able to
-/// import the module.
+/// Fuzzy string matching module using Damerau-Levenshtein distance.
+///
+/// This module provides fast fuzzy string matching capabilities implemented in Rust.
+/// It uses the Damerau-Levenshtein algorithm to calculate edit distances between strings,
+/// accounting for insertions, deletions, substitutions, and transpositions.
+///
+/// Classes:
+///     WordDistance: Container for a word and its distance from a target
+///
+/// Functions:
+///     find_most_similar_words: Find N most similar words from a list
 #[pymodule]
-fn fuzzy_string_matcher(_py: Python<'_>, m: &PyModule) -> PyResult<()> {
+fn fuzzy_string_matcher(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<WordDistance>()?;
     m.add_function(wrap_pyfunction!(find_most_similar_words, m)?)?;
     Ok(())
