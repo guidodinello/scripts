@@ -65,13 +65,18 @@ class CustomLogger:
         console_handler.setFormatter(self.formatter)
         logger.addHandler(console_handler)
 
-        # File handler - daily rotating log file
+        # File handler - daily rotating log file (no colors)
         today = datetime.now().strftime("%Y-%m-%d")
         file_handler = logging.FileHandler(
             self.log_dir / f"{today}.log",
             encoding="utf-8",
         )
-        file_handler.setFormatter(self.formatter)
+        # Use plain formatter without ANSI color codes for file output
+        plain_formatter = logging.Formatter(
+            self.settings.format,
+            datefmt="%Y-%m-%d %H:%M:%S",
+        )
+        file_handler.setFormatter(plain_formatter)
         logger.addHandler(file_handler)
 
         return logger
