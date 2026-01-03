@@ -16,24 +16,17 @@ dev = [
     "pre-commit>=4.0.1",
     "pylint>=3.3.6",
 ]
-rust = ["maturin>=1.0.0"]
-
-[tool.hatch.build.targets.sdist]
-include = [
-    "cheatsheet",
-    "open",
-    "organize",
-    "utils",
-]
-
-[tool.hatch.build.targets.wheel]
-include = [
-    "cheatsheet",
-    "open",
-    "organize",
-    "utils",
-]
 
 [build-system]
-requires = ["hatchling"]
-build-backend = "hatchling.build"
+requires = ["maturin>=1.0,<2.0"]
+build-backend = "maturin"
+
+[tool.maturin]
+# Path to the Rust extension module
+module-name = "fuzzy_string_matcher"
+# Include Python source files in the package
+python-source = "."
+# Specify the Rust manifest location
+manifest-path = "rust_utils/fuzzy_string_matcher/Cargo.toml"
+# Include Python packages (list of package names, not paths)
+python-packages = ["cheatsheet", "open", "organize", "utils"]
