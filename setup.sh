@@ -36,7 +36,7 @@ function add_alias() {
         return
     fi
     echo -e "${GREEN}Adding alias for ${script} to ${shell_config}${NC}"
-    echo "alias ${script}='cd ${SCRIPTS_DIR} && python ${script}/${script}.py'" >>"${shell_config}"
+    echo "alias ${script}='cd ${SCRIPTS_DIR} && ${SCRIPTS_DIR}/.venv/bin/python ${script}/${script}.py'" >>"${shell_config}"
 }
 
 function setup_aliases() {
