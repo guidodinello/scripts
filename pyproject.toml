@@ -22,10 +22,13 @@ requires = ["maturin>=1.0,<2.0"]
 build-backend = "maturin"
 
 [tool.maturin]
-# Path to the Rust extension module
+# Compiled as a pure extension module (no python-source) — imported
+# directly as `import fuzzy_string_matcher` (see utils/sfm.py), not
+# wrapped in a matching Python package. python-source = "." previously
+# forced maturin's mixed-layout mode, which requires a companion
+# fuzzy_string_matcher/__init__.py that was never meant to exist —
+# broke every build since it was added.
 module-name = "fuzzy_string_matcher"
-# Include Python source files in the package
-python-source = "."
 # Specify the Rust manifest location
 manifest-path = "rust_utils/fuzzy_string_matcher/Cargo.toml"
 # Include Python packages (list of package names, not paths)

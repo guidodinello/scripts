@@ -3,6 +3,7 @@ import sys
 from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
+from typing import ClassVar
 
 
 @dataclass(frozen=True, slots=True)
@@ -14,7 +15,7 @@ class DefaultSettings:
 class Formatter(logging.Formatter):
     """Custom formatter with colors for console output"""
 
-    COLORS = {
+    COLORS: ClassVar[dict[str, str]] = {
         "green": "\x1b[32m",
         "grey": "\x1b[38;20m",
         "yellow": "\x1b[33;20m",
@@ -66,7 +67,9 @@ class CustomLogger:
         logger.addHandler(console_handler)
 
         # File handler - daily rotating log file (no colors)
-        today = datetime.now().strftime("%Y-%m-%d")
+        # .astimezone() makes this tz-aware without changing the value — still
+        # today's date in local time, just explicit about which timezone that is.
+        today = datetime.now().astimezone().strftime("%Y-%m-%d")
         file_handler = logging.FileHandler(
             self.log_dir / f"{today}.log",
             encoding="utf-8",

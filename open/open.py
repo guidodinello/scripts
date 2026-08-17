@@ -72,7 +72,7 @@ class ListProjectsCommand:
         self.paths = paths
 
     def execute(self):
-        max_length = max(len(key) for key in self.paths.keys())
+        max_length = max(len(key) for key in self.paths)
         for key, path in self.paths.items():
             print(f"* {key:{max_length}}: \t{path}")
         return 0
@@ -154,7 +154,7 @@ class OpenProjectCommand:
                 3,
             )
         # pylint: disable-next=broad-exception-caught
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001 — best-effort, must not crash
             logger.error("Error during fuzzy matching:  %s", e)
             print("Error finding similar project names")
 
@@ -253,7 +253,7 @@ def main():
 
     # pylint: disable-next=broad-exception-caught
     except Exception as e:
-        logger.error("Unhandled exception: %s", e, exc_info=True)
+        logger.exception("Unhandled exception")
         print(f"An error occurred: {e}")
         return 1
 
