@@ -9,16 +9,16 @@ license = { text = "MIT" }
 
 [project.optional-dependencies]
 dev = [
-    "pytest>=8.3.5",
-    "black>=24.10.0",
-    "ruff>=0.8.0",
-    "mypy>=1.13.0",
-    "pre-commit>=4.0.1",
-    "pylint>=3.3.6",
+    "pytest>=9.1.1",
+    "black>=26.5.1",
+    "ruff>=0.16.3",
+    "mypy>=2.3.0",
+    "pre-commit>=4.6.2",
+    "pylint>=4.0.7",
 ]
 
 [build-system]
-requires = ["maturin>=1.0,<2.0"]
+requires = ["maturin>=1.14.1,<2.0"]
 build-backend = "maturin"
 
 [tool.maturin]
