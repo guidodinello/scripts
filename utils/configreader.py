@@ -1,5 +1,5 @@
-from pathlib import Path
 from collections.abc import Iterable
+from pathlib import Path
 
 
 def read_mapping_file(abs_path: str) -> dict[str, Path]:
@@ -30,8 +30,7 @@ def add_to_mapping_file(new_entries: dict[str, str], abs_path: str) -> None:
         abs_path (str): absolute path to the mapping file
     """
     with open(abs_path, "a", encoding="utf-8") as file:
-        for key, value in new_entries.items():
-            file.write(f"{key}={value}\n")
+        file.writelines(f"{key}={value}\n" for key, value in new_entries.items())
 
 
 def remove_form_mapping_file(

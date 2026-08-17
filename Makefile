@@ -1,4 +1,4 @@
-.PHONY: all help install install-dev lint format test precommit clean rust-build setup
+.PHONY: all help install install-dev lint format format-check test precommit clean rust-build setup
 
 all: help
 
@@ -9,6 +9,7 @@ help:
 	@echo "  make rust-build     - Rebuild Rust extension (for development)"
 	@echo "  make lint           - Run all linters (ruff, mypy, pylint)"
 	@echo "  make format         - Format code with black"
+	@echo "  make format-check   - Check formatting without writing (CI)"
 	@echo "  make test           - Run tests with pytest"
 	@echo "  make precommit      - Run pre-commit on all files"
 	@echo "  make clean          - Clean up build artifacts"
@@ -33,6 +34,9 @@ lint:
 format:
 	python -m black .
 	python -m ruff check --fix .
+
+format-check:
+	python -m black --check .
 
 test:
 	python -m pytest
