@@ -8,7 +8,7 @@ use pyo3::prelude::*;
 /// Attributes:
 ///     word (str): The word being compared
 ///     distance (int): The Damerau-Levenshtein distance from the target word
-#[pyclass]
+#[pyclass(from_py_object)]
 #[derive(Clone)]
 pub struct WordDistance {
     #[pyo3(get)]
@@ -26,13 +26,28 @@ impl Iter {
     fn __iter__(slf: PyRef<'_, Self>) -> PyRef<'_, Self> {
         slf
     }
-    fn __next__(mut slf: PyRefMut<'_, Self>) -> Option<PyObject> {
+    fn __next__(mut slf: PyRefMut<'_, Self>) -> Option<Py<PyAny>> {
         if slf.index == 0 {
             slf.index += 1;
-            Some(slf.word_distance.word.clone().into_py(slf.py()))
+            Some(
+                slf.word_distance
+                    .word
+                    .clone()
+                    .into_pyobject(slf.py())
+                    .unwrap()
+                    .into_any()
+                    .unbind(),
+            )
         } else if slf.index == 1 {
             slf.index += 1;
-            Some(slf.word_distance.distance.into_py(slf.py()))
+            Some(
+                slf.word_distance
+                    .distance
+                    .into_pyobject(slf.py())
+                    .unwrap()
+                    .into_any()
+                    .unbind(),
+            )
         } else {
             None
         }
