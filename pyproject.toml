@@ -11,14 +11,14 @@ license = { text = "MIT" }
 dev = [
     "pytest>=9.1.1",
     "black>=26.5.1",
-    "ruff>=0.16.3",
-    "mypy>=2.3.0",
+    "ruff>=0.16.5",
+    "mypy>=2.3.1",
     "pre-commit>=4.6.2",
     "pylint>=4.0.7",
 ]
 
 [build-system]
-requires = ["maturin>=1.14.1,<2.0"]
+requires = ["maturin>=1.15.0,<2.0"]
 build-backend = "maturin"
 
 [tool.maturin]
