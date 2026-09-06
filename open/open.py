@@ -26,6 +26,7 @@ from pathlib import Path
 from typing import Protocol
 
 from utils import configreader
+from utils.configreader import ProjectEntry
 from utils.logger import get_logger
 from utils.sfm import sfm
 
@@ -68,26 +69,57 @@ class HelpCommand:
 
 
 class ListProjectsCommand:
-    def __init__(self, paths: dict[str, Path]):
+    def __init__(self, paths: dict[str, ProjectEntry]):
         self.paths = paths
 
     def execute(self):
         max_length = max(len(key) for key in self.paths)
-        for key, path in self.paths.items():
-            print(f"* {key:{max_length}}: \t{path}")
+        for key, entry in self.paths.items():
+            suffix = f"  [command: {entry.command}]" if entry.command else ""
+            print(f"* {key:{max_length}}: \t{entry.path}{suffix}")
         return 0
 
 
 class AddProjectCommand:
-    def __init__(self, key: str, abs_path: str, paths: dict[str, Path], paths_dir: str):
+    def __init__(
+        self,
+        key: str,
+        entry: ProjectEntry,
+        paths: dict[str, ProjectEntry],
+        paths_dir: str,
+    ):
         self.key = key
-        self.abs_path = abs_path
+        self.entry = entry
         self.paths = paths
         self.paths_dir = paths_dir
 
     def execute(self):
-        configreader.add_to_mapping_file({self.key: self.abs_path}, self.paths_dir)
-        logger.info("Added new project: %s ->  %s", self.key, self.abs_path)
+        configreader.add_to_mapping_file({self.key: self.entry}, self.paths_dir)
+        logger.info("Added new project: %s ->  %s", self.key, self.entry)
+        return 0
+
+
+class SetProjectCommandCommand:
+    def __init__(
+        self,
+        key: str,
+        command: str,
+        paths: dict[str, ProjectEntry],
+        paths_dir: str,
+    ):
+        self.key = key
+        self.command = command
+        self.paths = paths
+        self.paths_dir = paths_dir
+
+    def execute(self):
+        if self.key not in self.paths:
+            print(f"There's no project registered for the name: {self.key}")
+            return 1
+
+        entry = ProjectEntry(self.paths[self.key].path, self.command)
+        configreader.add_to_mapping_file({self.key: entry}, self.paths_dir)
+        logger.info("Set command for project %s: %s", self.key, self.command)
         return 0
 
 
@@ -95,7 +127,7 @@ class OpenProjectCommand:
     def __init__(
         self,
         project_name: str,
-        paths: dict[str, Path],
+        paths: dict[str, ProjectEntry],
         relative_path: str | None = None,
         keep_terminal: bool = False,
     ):
@@ -108,9 +140,13 @@ class OpenProjectCommand:
         if self.project_name not in self.paths:
             return self._handle_not_found()
 
-        path_project = self.paths[self.project_name]
+        entry = self.paths[self.project_name]
+        path_project = entry.path
         if self.relative_path:
             path_project = Path(path_project, self.relative_path)
+
+        if entry.command:
+            self._run_custom_command(entry.command, path_project)
 
         # Open VS Code
         try:
@@ -138,6 +174,20 @@ class OpenProjectCommand:
                 logger.error("Failed to close parent terminal:  %s", e)
 
         return 0
+
+    def _run_custom_command(self, command: str, cwd: Path) -> None:
+        """Launch the project's registered custom command in parallel,
+        without blocking on it (e.g. spinning up a docker container)."""
+        try:
+            subprocess.Popen(  # pylint: disable=consider-using-with
+                command,
+                shell=True,
+                cwd=cwd,
+                env=cleaned_env(),
+            )
+            logger.info("Launched custom command for %s: %s", cwd, command)
+        except OSError as e:
+            logger.error("Failed to launch custom command:  %s", e)
 
     def _handle_not_found(self) -> int:
         """Handle case when project name is not found"""
@@ -179,7 +229,7 @@ class CommandFactory:
     @staticmethod
     def create_command(
         parser: ArgumentParser,
-        paths: dict[str, Path],
+        paths: dict[str, ProjectEntry],
         paths_dir: str,
     ) -> Command:
         args = parser.parse_args()
@@ -200,7 +250,12 @@ class CommandFactory:
 
         if args.add_entry:
             key, abs_path = args.add_entry
-            return AddProjectCommand(key, abs_path, paths, paths_dir)
+            entry = ProjectEntry(Path(abs_path), args.command)
+            return AddProjectCommand(key, entry, paths, paths_dir)
+
+        if args.set_command:
+            key, command = args.set_command
+            return SetProjectCommandCommand(key, command, paths, paths_dir)
 
         return HelpCommand(parser)
 
@@ -225,6 +280,21 @@ def configure_cli_args():
         nargs=2,
         metavar=("key", "abs_path"),
         help="Add a new project entry",
+    )
+    parser.add_argument(
+        "--command",
+        "-c",
+        help=(
+            "Custom command to run in parallel when opening the project "
+            "(used together with --add_entry)"
+        ),
+    )
+    parser.add_argument(
+        "--set_command",
+        "-sc",
+        nargs=2,
+        metavar=("key", "command"),
+        help="Set the custom command to run for an already registered project",
     )
     parser.add_argument(
         "--list",
