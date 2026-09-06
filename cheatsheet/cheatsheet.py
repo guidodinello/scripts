@@ -32,12 +32,13 @@ import sys
 from itertools import chain
 from pathlib import Path
 
-from utils import configreader
+from logger import get_logger, init_logging
+
+from utils import LOG_FILE, configreader
 from utils.functional_utils import lazy_find
-from utils.logger import get_logger
 from utils.sfm import sfm
 
-logger = get_logger()
+logger = get_logger(__name__)
 
 
 PATH_DIR = os.path.join(os.path.dirname(__file__), ".env")
@@ -70,6 +71,8 @@ def open_cheatsheet(cheatsheet_path: Path):
 
 
 if __name__ == "__main__":
+    init_logging(log_file=LOG_FILE)
+
     if len(sys.argv) != 2:
         print(USAGE_DOCS)
         sys.exit(1)
