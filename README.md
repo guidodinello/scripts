@@ -41,6 +41,7 @@ organize
 ### Available Scripts
 
 - **open**: Quickly navigate to your projects with file manager and VS Code
+  - Register a custom command to run in parallel when opening a project (e.g. spinning up a docker container), via `--add_entry key path --command "..."` or `--set_command key "..."` for an already registered project.
 - **cheatsheet**: Access your markdown cheatsheets with fuzzy matching
 - **organize**: Command-line utilities for organizing files
 
@@ -85,7 +86,7 @@ make check-rust
 
 ### Future Improvements
 
-- [ ] Allow the user to add some custom command to the open script (and persist it). For instance, if some project needs to spin up a database docker container, that would be useful.
+- [x] Allow the user to add some custom command to the open script (and persist it). For instance, if some project needs to spin up a database docker container, that would be useful.
 - [ ] Add more comprehensive logging
-- [ ] Implement unit testing
+- [x] Implement unit testing — a `tests/` suite already exists and runs in CI via `make test` (see the Pipeline badge above); currently covers the Rust fuzzy string matcher module.
 - [ ] Add more scripts

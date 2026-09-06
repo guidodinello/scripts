@@ -43,7 +43,7 @@ logger = get_logger()
 PATH_DIR = os.path.join(os.path.dirname(__file__), ".env")
 
 # Configurable Script Constants
-CHEATSHEETS_FOLDER = configreader.read_mapping_file(PATH_DIR)["folder"]
+CHEATSHEETS_FOLDER = configreader.read_mapping_file(PATH_DIR)["folder"].path
 SIMILARITY_THRESHOLD = 4
 
 USAGE_DOCS = f"""
