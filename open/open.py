@@ -25,12 +25,13 @@ from logging import DEBUG
 from pathlib import Path
 from typing import Protocol
 
-from utils import configreader
+from logger import get_logger, init_logging
+
+from utils import LOG_FILE, configreader
 from utils.configreader import ProjectEntry
-from utils.logger import get_logger
 from utils.sfm import sfm
 
-logger = get_logger()
+logger = get_logger(__name__)
 
 SIMILARITY_THRESHOLD = 4
 PATHS_DIR = os.path.join(os.path.dirname(__file__), ".env")
@@ -313,6 +314,7 @@ def configure_cli_args():
 
 def main():
     try:
+        init_logging(log_file=LOG_FILE)
         paths = configreader.read_mapping_file(PATHS_DIR)
         parser = configure_cli_args()
 

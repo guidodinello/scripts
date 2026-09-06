@@ -19,9 +19,11 @@ import functools
 import os
 from collections.abc import Callable
 
-from utils.logger import get_logger
+from logger import get_logger, init_logging
 
-logger = get_logger()
+from utils import LOG_FILE
+
+logger = get_logger(__name__)
 
 
 def str_matcher_iterator(substr: str, case_sensitive: bool):
@@ -73,4 +75,5 @@ def help(specific_command: str = ""):
 
 
 if __name__ == "__main__":
+    init_logging(log_file=LOG_FILE)
     code.interact(local=locals())

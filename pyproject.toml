@@ -3,9 +3,10 @@ name = "scripts"
 version = "0.1.0"
 description = "Collection of general tasks automation scripts"
 authors = [{ name = "Guido Dinello", email = "guido.dinello@gmail.com" }]
-requires-python = ">=3.12"
+requires-python = ">=3.13"
 readme = "README.md"
 license = { text = "MIT" }
+dependencies = ["logger"]
 
 [project.optional-dependencies]
 dev = [
@@ -16,6 +17,22 @@ dev = [
     "pre-commit>=4.6.2",
     "pylint>=4.0.7",
 ]
+
+[tool.uv.sources]
+# Git source, not a local path: the old absolute path only resolved on this
+# machine, which is exactly what .github/workflows/pipeline.yaml needs to
+# resolve too. uv.lock pins the exact resolved commit, but that pin is only
+# enforced by `uv sync --locked`/`--frozen`; a plain `uv sync` prefers the
+# locked commit over the branch's latest, so it won't silently pick up new
+# commits. Tracks logger's main branch; bump with
+# `uv lock --upgrade-package logger` when logger changes and you want the
+# update here.
+logger = { git = "https://github.com/guidodinello/logger", branch = "main" }
+
+[[tool.mypy.overrides]]
+# The logger package ships no py.typed marker/stubs yet.
+module = "logger"
+ignore_missing_imports = true
 
 [build-system]
 requires = ["maturin>=1.14.1,<2.0"]

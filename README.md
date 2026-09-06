@@ -87,6 +87,6 @@ make check-rust
 ### Future Improvements
 
 - [x] Allow the user to add some custom command to the open script (and persist it). For instance, if some project needs to spin up a database docker container, that would be useful.
-- [ ] Add more comprehensive logging
+- [x] Add more comprehensive logging — swapped the bespoke logger for the shared [`logger`](https://github.com/guidodinello/logger) package (also used by `claude-client`/`claude-web-backup`): per-module loggers via `get_logger(__name__)`, TTY-aware color, and a single size-rotated `logs/scripts.log` instead of one unbounded file per day.
 - [x] Implement unit testing — a `tests/` suite already exists and runs in CI via `make test` (see the Pipeline badge above); currently covers the Rust fuzzy string matcher module.
 - [ ] Add more scripts
