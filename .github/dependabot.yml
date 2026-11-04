@@ -2,7 +2,7 @@
 # Distinct from the vulnerability-alert/automated-security-fix settings
 # github-standard.py already turns on via the GitHub API — those are
 # security-only patches; this is routine "keep pinned deps current" PRs
-# on a schedule, for three ecosystems: your actual dependencies (pip),
+# on a schedule, for three ecosystems: your actual dependencies (uv),
 # your CI Actions pins, and your pre-commit hook revs.
 #
 # Adopt: cp to .github/dependabot.yml, adjust `directory` if the repo
@@ -14,7 +14,7 @@
 # — this only helps once a dependency is actually pinned/bounded.
 version: 2
 updates:
-  - package-ecosystem: pip
+  - package-ecosystem: uv
     directory: /
     schedule:
       interval: weekly
@@ -42,7 +42,7 @@ updates:
           - "*"
 
   # rust_utils/fuzzy_string_matcher/ is a separate Cargo crate (the pyo3
-  # extension module) — not covered by the pip ecosystem above.
+  # extension module) — not covered by the uv ecosystem above.
   - package-ecosystem: cargo
     directory: /rust_utils/fuzzy_string_matcher
     schedule:
