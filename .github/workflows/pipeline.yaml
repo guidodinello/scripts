@@ -39,6 +39,18 @@ jobs:
               make format-check
               make lint
               make test
+          # Hook envs live in ~/.cache/pre-commit, outside setup-uv's cache.
+          # pre-commit rebuilds an env whose interpreter has since changed.
+          - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+            with:
+              path: ~/.cache/pre-commit
+              key: pre-commit-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('.pre-commit-config.yaml') }}
+          # Runs the whole .pre-commit-config.yaml so the hygiene hooks gate merges
+          # too. The venv must be active: pylint is a `language: system` hook.
+          - name: pre-commit hooks
+            run: |
+              source .venv/bin/activate
+              pre-commit run --all-files --show-diff-on-failure
 
     # Single stable check name for the branch ruleset (see dev-standards
     # templates/ci/python-ci.yml). if: always() so it still runs (and fails) when a
