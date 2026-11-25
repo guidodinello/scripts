@@ -12,6 +12,12 @@ repos:
           - id: check-added-large-files
           - id: name-tests-test
             args: [--pytest-test-first]
+          # Copier leaves inline conflict markers in a sync PR it couldn't merge
+          # (dev-standards' sync.py). --assume-in-merge makes the hook check every file
+          # even outside a git merge, so CI stays red on markers in any file, not only
+          # the ones check-yaml parses.
+          - id: check-merge-conflict
+            args: [--assume-in-merge]
 
     - repo: https://github.com/asottile/pyupgrade
       rev: v3.22.0
