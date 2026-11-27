@@ -8,7 +8,7 @@ help:
 	@echo "  make install-dev    - Install the package with dev dependencies"
 	@echo "  make rust-build     - Rebuild Rust extension (for development)"
 	@echo "  make lint           - Run all linters (ruff, mypy, pylint)"
-	@echo "  make format         - Format code with black"
+	@echo "  make format         - Format code with ruff"
 	@echo "  make format-check   - Check formatting without writing (CI)"
 	@echo "  make test           - Run tests with pytest"
 	@echo "  make precommit      - Run pre-commit on all files"
@@ -32,11 +32,11 @@ lint:
 		--disable=missing-function-docstring,missing-module-docstring,missing-class-docstring,too-few-public-methods,c-extension-no-member
 
 format:
-	python -m black .
+	python -m ruff format .
 	python -m ruff check --fix .
 
 format-check:
-	python -m black --check .
+	python -m ruff format --check .
 
 test:
 	python -m pytest
